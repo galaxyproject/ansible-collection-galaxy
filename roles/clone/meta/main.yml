@@ -1,0 +1,4 @@
+---
+
+dependencies:
+  - role: galaxyproject.galaxy.defaults

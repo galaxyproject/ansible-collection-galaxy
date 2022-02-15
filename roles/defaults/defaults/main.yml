@@ -2,6 +2,7 @@
 # defaults for roles in the galaxyproject.galaxy collection
 
 # User that Galaxy runs as
+# TODO: describe dict keys
 galaxy_user: "{{ ansible_user_id }}"
 
 # User that owns Galaxy code, configs, and virutalenv, and that runs `pip install` for dependencies
@@ -12,31 +13,74 @@ galaxy_privsep_user: root
 # privilege separation without making configs world-readable, the users should share a common group. This group will be
 # created if it does not exist. Ideally this is the primary group of `galaxy_user`, on most Linux systems, just set this
 # to the same value as `galaxy_user` if you want to enable this feature.
-#galaxy_group:
+galaxy_group: "{{ galaxy_user_name }}"
 
 # Because galaxy_user and galaxy_user_name vars can be either a bare username or a dict
 galaxy_user_name: "{{ galaxy_user.name | default(galaxy_user) }}"
 galaxy_privsep_user_name: "{{ galaxy_privsep_user.name | default(galaxy_privsep_user) }}"
+galaxy_group_name: "{{ (galaxy_group | default({})).name | default(galaxy_group) }}"
+
+# Should the Galaxy user and group be created
+galaxy_create_user: true
+galaxy_create_group: true
 
 # If the privsep user is not root it will also be created, but you can override this behavior
 galaxy_create_privsep_user: "{{ galaxy_privsep_user_name != 'root' }}"
 
-# Directories to create as the Galaxy user if galaxy_manage_paths is enabled
-galaxy_dirs:
+
+
+
+
+# Gonna attempt path handling here
+galaxy_local_root: "{{ galaxy_root }}/local"
+galaxy_shared_root: "{{ galaxy_root }}/share"
+galaxy_local_ro_root: "{{ galaxy_local_root }}/ro"
+galaxy_shared_ro_root: "{{ galaxy_shared_root }}/ro"
+galaxy_local_rw_root: "{{ galaxy_local_root }}/rw"
+galaxy_shared_rw_root: "{{ galaxy_shared_root }}/rw"
+
+galaxy_config_dir: "{{ galaxy_local_ro_root }}/config"
+
+galaxy_venv_dir: "{{ galaxy_shared_ro_root }}/venv"
+galaxy_server_dir: "{{ galaxy_shared_ro_root }}/server"
+galaxy_local_tools_dir: "{{ galaxy_shared_ro_root }}/local_tools"
+
+galaxy_mutable_data_dir: "{{ galaxy_local_rw_root }}/lib"
+galaxy_mutable_config_dir: "{{ galaxy_local_rw_root }}/lib/config"
+galaxy_cache_dir: "{{ galaxy_local_rw_root }}/tmp/cache"
+
+galaxy_shed_tools_dir: "{{ galaxy_shared_rw_root }}/lib/shed_tools"
+galaxy_tool_dependency_dir: "{{ galaxy_shared_rw_root }}/lib/dependencies"
+galaxy_file_path: "{{ galaxy_shared_rw_root }}/lib/objects"
+galaxy_new_file_path: "{{ galaxy_shared_rw_root }}/tmp/scratch"
+galaxy_job_working_directory: "{{ galaxy_shared_rw_root }}/tmp/jobs"
+
+galaxy_local_ro_dirs:
+  - "{{ galaxy_config_dir }}"
+
+galaxy_shared_ro_dirs:
+  - "{{ galaxy_local_tools_dir }}"
+
+galaxy_local_rw_dirs:
   - "{{ galaxy_mutable_data_dir }}"
   - "{{ galaxy_mutable_config_dir }}"
   - "{{ galaxy_cache_dir }}"
+
+galaxy_shared_rw_dirs:
   - "{{ galaxy_shed_tools_dir }}"
   - "{{ galaxy_tool_dependency_dir }}"
   - "{{ galaxy_file_path }}"
+  - "{{ galaxy_new_file_path }}"
   - "{{ galaxy_job_working_directory }}"
 
-# Directories to create as the privilege separated user if galaxy_manage_paths is enabled
-galaxy_privsep_dirs:
-  - "{{ galaxy_venv_dir }}"
-  - "{{ galaxy_server_dir }}"
-  - "{{ galaxy_config_dir }}"
-  - "{{ galaxy_local_tools_dir }}"
+# TODO: ftp, object store cache, ???
+
+# Control whether to output verbose task diffs (e.g. when performing a git update) when running Ansible with --diff.
+# Only suppresses diff on tasks that are likely to be verbose, not all tasks
+galaxy_diff_mode_verbose: "{{ ansible_diff_mode }}"
+
+# FIXME: document, implement for Gravity
+galaxy_restart_handler_name: "default restart galaxy handler"
 
 # Local (relative to playbook) path to local tools
 galaxy_local_tools_src_dir: files/galaxy/tools

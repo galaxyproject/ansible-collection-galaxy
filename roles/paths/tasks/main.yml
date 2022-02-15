@@ -1,0 +1,17 @@
+---
+
+- name: Include local filesystem read-only path creation role
+  include_role:
+    name: galaxyproject.galaxy.paths_local_ro
+
+- name: Include local filesystem read-write path creation role
+  include_role:
+    name: galaxyproject.galaxy.paths_local_rw
+
+- name: Include shared filesystem read-only path creation role
+  include_role:
+    name: galaxyproject.galaxy.paths_shared_ro
+
+- name: Include shared filesystem read-write path creation role
+  include_role:
+    name: galaxyproject.galaxy.paths_shared_rw

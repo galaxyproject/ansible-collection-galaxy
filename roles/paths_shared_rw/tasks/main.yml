@@ -1,0 +1,19 @@
+---
+
+- name: Create shared storage read-write root
+  file:
+    path: "{{ galaxy_shared_rw_root }}"
+    owner: "{{ galaxy_user_name }}"
+    group: "{{ galaxy_group_name }}"
+    state: directory
+    mode: "{{ galaxy_shared_rw_root_mode | default('0750') }}"
+
+- name: Create shared storage read-write subdirectories
+  file:
+    path: "{{ item }}"
+    owner: "{{ galaxy_user_name }}"
+    group: "{{ galaxy_group_name }}"
+    state: directory
+    mode: "{{ galaxy_shared_rw_root_mode | default('0750') }}"
+  loop: "{{ galaxy_shared_rw_dirs }}"
+  when: item.startswith(galaxy_shared_rw_root) ~ '/'
