@@ -1,0 +1,6 @@
+---
+
+dependencies:
+  - role: galaxyproject.galaxy.defaults
+  - role: galaxyproject.galaxy.version
+  - role: galaxyproject.galaxy.venv
