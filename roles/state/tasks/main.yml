@@ -1,0 +1,30 @@
+---
+# Instantiate mutable config files
+
+# force: no in the following 2 tasks will not overwrite existing configs
+- name: Instantiate mutable configuration files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: no
+    mode: "{{ galaxy_config_perms }}"
+  loop: "{{ galaxy_mutable_config_files }}"
+
+- name: Instantiate mutable configuration templates
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    force: no
+    mode: "{{ galaxy_config_perms }}"
+  loop: "{{ galaxy_mutable_config_templates }}"
+
+- name: Fetch mutable configuration files for backup
+  fetch:
+    src: "{{ item.dest }}"
+    dest: "{{ galaxy_mutable_config_backup_dir.rstrip('/') }}/"
+    flat: true
+  loop: "{{ galaxy_mutable_config_files + galaxy_mutable_config_templates }}"
+  loop_control:
+    label: "{{ galaxy_mutable_config_backup_dir.rstrip('/') }}/{{ item.src }}"
+  when: galaxy_mutable_config_backup_dir is defined
+
