@@ -1,0 +1,11 @@
+---
+# defaults file for galaxyproject.galaxy
+
+- name: systemd daemon reload
+  systemd:
+    daemon_reload: yes
+
+- name: systemd galaxy restart
+  systemd:
+      name: galaxy.service
+      state: restarted

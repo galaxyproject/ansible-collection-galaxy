@@ -13,6 +13,7 @@ galaxy_privsep_user: root
 # privilege separation without making configs world-readable, the users should share a common group. This group will be
 # created if it does not exist. Ideally this is the primary group of `galaxy_user`, on most Linux systems, just set this
 # to the same value as `galaxy_user` if you want to enable this feature.
+# TODO: should automatically determine this in the case that it's not specified, rather than assuming it's the username
 galaxy_group: "{{ galaxy_user_name }}"
 
 # Because galaxy_user and galaxy_user_name vars can be either a bare username or a dict
@@ -260,3 +261,29 @@ galaxy_client_build_steps:
     - stageLibs
     - plugins
 
+
+# Restart handler is already set if using the systemd options in this role, otherwise you need to define one yourself
+galaxy_manage_systemd: false
+galaxy_restart_handler_name: "{{ 'systemd galaxy restart' if (galaxy_systemd_mode == 'mule' and galaxy_manage_systemd) else 'default restart galaxy handler' }}"
+
+#
+# systemd options
+#
+
+# Currently `mule` is the only systemd mode
+galaxy_systemd_mode: mule
+
+# Systemd will create cgroups to enforce these limits (sizes in GB), override individual limits by setting
+# `galaxy_systemd_memory_limit.<limit>` in your vars.
+__galaxy_systemd_memory_limit:
+  # This is for the entire group of uWSGI master, web worker, and mule processes
+  mule: 16
+  reports: 5
+  #workflow: 5
+  #zergpool: 8
+  #zergling: 16
+  #handler: 5
+__galaxy_systemd_memory_limit_merged: "{{ __galaxy_systemd_memory_limit | combine(galaxy_systemd_memory_limit | default({})) }}"
+
+# A list of KEY=val strings to be added as `Environment=KEY=val` to the systemd service unit
+galaxy_systemd_env: []
