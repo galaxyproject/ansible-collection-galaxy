@@ -80,9 +80,6 @@ galaxy_shared_rw_dirs:
 # Only suppresses diff on tasks that are likely to be verbose, not all tasks
 galaxy_diff_mode_verbose: "{{ ansible_diff_mode }}"
 
-# FIXME: document, implement for Gravity
-galaxy_restart_handler_name: "default restart galaxy handler"
-
 # Local (relative to playbook) path to local tools
 galaxy_local_tools_src_dir: files/galaxy/tools
 
@@ -264,6 +261,7 @@ galaxy_client_build_steps:
 
 # Restart handler is already set if using the systemd options in this role, otherwise you need to define one yourself
 galaxy_manage_systemd: false
+# FIXME: document, implement for Gravity
 galaxy_restart_handler_name: "{{ 'systemd galaxy restart' if (galaxy_systemd_mode == 'mule' and galaxy_manage_systemd) else 'default restart galaxy handler' }}"
 
 #
