@@ -1,5 +1,0 @@
----
-
-- name: default restart galaxy handler
-  debug:
-    msg: "RESTARTER NOT IMPLEMENTED - Please restart Galaxy manually. You can define your own handler and enable it with `galaxy_restart_handler_name`"

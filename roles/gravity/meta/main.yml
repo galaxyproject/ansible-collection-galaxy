@@ -2,4 +2,3 @@
 
 dependencies:
   - role: galaxyproject.galaxy.defaults
-  - role: galaxyproject.galaxy.version

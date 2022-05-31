@@ -1,0 +1,17 @@
+---
+
+- name: Gravity setup
+  block:
+
+    - name: Register Galaxy config with Gravity
+      command: "{{ galaxy_venv_dir }}/bin/galaxyctl register {{ galaxy_config_file }}"
+      args:
+        creates: "{{ galaxy_gravity_state_dir }}/configstate.yaml"
+
+    - name: Update Gravity process management files
+      command: "{{ galaxy_venv_dir }}/bin/galaxyctl update"
+      args:
+        creates: "{{ galaxy_gravity_state_dir }}/supervisor/supervisord.conf.d"
+
+  environment:
+    GRAVITY_STATE_DIR: "{{ galaxy_gravity_state_dir }}"

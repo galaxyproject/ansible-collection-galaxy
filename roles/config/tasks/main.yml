@@ -9,7 +9,7 @@
     group: "{{ galaxy_group_name | default(omit) }}"
   with_items: "{{ galaxy_config_files }}"
   notify:
-    - "{{ galaxy_restart_handler_name }}"
+    - restart galaxy
 
 - name: Install additional Galaxy config files (template)
   template:
@@ -20,7 +20,7 @@
     group: "{{ galaxy_group_name | default(omit) }}"
   with_items: "{{ galaxy_config_templates }}"
   notify:
-    - "{{ galaxy_restart_handler_name }}"
+    - restart galaxy
 
 - name: Install local tools
   copy:
@@ -124,4 +124,5 @@
     mode: "{{ galaxy_config_perms }}"
     group: "{{ galaxy_group_name | default(omit) }}"
   notify:
-    - "{{ galaxy_restart_handler_name }}"
+    - galaxyctl update
+    - restart galaxy

@@ -1,0 +1,14 @@
+---
+
+- name: galaxy gravity restart
+  command: "{{ galaxy_venv_dir }}/bin/galaxyctl graceful"
+  environment:
+    GRAVITY_STATE_DIR: "{{ galaxy_gravity_state_dir }}"
+  when: "galaxy_systemd_mode == 'gravity'"
+  listen: "restart galaxy"
+
+- name: galaxyctl update
+  command: "{{ galaxy_venv_dir }}/bin/galaxyctl update"
+  environment:
+    GRAVITY_STATE_DIR: "{{ galaxy_gravity_state_dir }}"
+  when: "galaxy_systemd_mode == 'gravity'"

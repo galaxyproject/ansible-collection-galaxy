@@ -1,17 +1,19 @@
 ---
 
-- name: Deploy Galaxy systemd service unit
+- name: Deploy Galaxy Unit
   template:
-    owner: root
-    group: root
+    owner: "{{ galaxy_systemd_root | ternary('root', omit) }}"
+    group: "{{ galaxy_systemd_root | ternary('root', omit) }}"
     mode: 0644
-    src: galaxy.service.j2
-    dest: /etc/systemd/system/galaxy.service
+    src: systemd/galaxy.service.j2
+    dest: "{{ galaxy_systemd_root | ternary('/etc/systemd/system/', ('~' ~ galaxy_user_name ~ '/.config/systemd/user') | expanduser) }}/galaxy.service"
   notify:
     - systemd daemon reload
-    - systemd galaxy restart
+    - start galaxy
+    - restart galaxy
 
-- name: Enable Galaxy systemd service Unit
+- name: Enable Galaxy service unit
   systemd:
     name: galaxy.service
     enabled: yes
+    scope: "{{ galaxy_systemd_root | ternary(omit, 'user') }}"

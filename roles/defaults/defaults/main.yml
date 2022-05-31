@@ -49,6 +49,7 @@ galaxy_local_tools_dir: "{{ galaxy_shared_ro_root }}/local_tools"
 galaxy_mutable_data_dir: "{{ galaxy_local_rw_root }}/lib"
 galaxy_mutable_config_dir: "{{ galaxy_local_rw_root }}/lib/config"
 galaxy_cache_dir: "{{ galaxy_local_rw_root }}/tmp/cache"
+galaxy_log_dir: "{{ galaxy_local_rw_root }}/log"
 
 galaxy_shed_tools_dir: "{{ galaxy_shared_rw_root }}/lib/shed_tools"
 galaxy_tool_dependency_dir: "{{ galaxy_shared_rw_root }}/lib/dependencies"
@@ -66,6 +67,7 @@ galaxy_local_rw_dirs:
   - "{{ galaxy_mutable_data_dir }}"
   - "{{ galaxy_mutable_config_dir }}"
   - "{{ galaxy_cache_dir }}"
+  - "{{ galaxy_log_dir }}"
 
 galaxy_shared_rw_dirs:
   - "{{ galaxy_shed_tools_dir }}"
@@ -213,6 +215,16 @@ galaxy_errordocs_prefix: /error
 galaxy_config_files: []
 galaxy_config_templates: []
 
+# Default Gravity configuration
+galaxy_gravity_state_dir: "{{ (galaxy_local_rw_root, 'gravity') | path_join }}"
+galaxy_gravity_config_default:
+  galaxy_root: "{{ galaxy_server_dir }}"
+  log_dir: "{{ galaxy_log_dir }}"
+  virtualenv: "{{ galaxy_venv_dir }}"
+  app_server: gunicorn
+  gunicorn:
+    bind: localhost:8080
+
 # Default uWSGI configuration
 galaxy_uwsgi_yaml_parser: internal
 galaxy_uwsgi_config_default:
@@ -260,16 +272,27 @@ galaxy_client_build_steps:
 
 
 # Restart handler is already set if using the systemd options in this role, otherwise you need to define one yourself
+galaxy_manage_gravity: "{{ false if __galaxy_major_version is version('22.05', '<') else true }}"
 galaxy_manage_systemd: false
-# FIXME: document, implement for Gravity
-galaxy_restart_handler_name: "{{ 'systemd galaxy restart' if (galaxy_systemd_mode == 'mule' and galaxy_manage_systemd) else 'default restart galaxy handler' }}"
 
 #
 # systemd options
 #
 
-# Currently `mule` is the only systemd mode
-galaxy_systemd_mode: mule
+# Currently `mule` (aka uWSGI) and `gravity` (runs Galaxy 22.01+ under gunicorn) are supported
+galaxy_systemd_mode: "{{ 'mule' if __galaxy_major_version is version('22.05', '<') else 'gravity' }}"
+
+# Control whether the systemd service unit is installed/controlled as root or the Galaxy user
+galaxy_systemd_root: true
+
+# The command that systemd will run to start Galaxy, depends on galaxy_systemd_mode or override
+galaxy_systemd_command: "{{ __galaxy_systemd_command[galaxy_systemd_mode] }}"
+__galaxy_systemd_command:
+  mule: "{{ galaxy_venv_dir }}/bin/uwsgi {{ '--yaml' if galaxy_config_style in ('yaml', 'yml') else '--ini' }} {{ galaxy_config_file }}"
+  gravity: "{{ galaxy_venv_dir }}/bin/galaxyctl start --foreground --quiet"
+
+# TimeoutStartSec is unfortunately also the timeout used for reload operations, which take longer
+galaxy_systemd_timeout_start_sec: "{{ (galaxy_systemd_mode == 'gravity') | ternary(60, 10) }}"
 
 # Systemd will create cgroups to enforce these limits (sizes in GB), override individual limits by setting
 # `galaxy_systemd_memory_limit.<limit>` in your vars.
