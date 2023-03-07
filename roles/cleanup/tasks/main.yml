@@ -1,0 +1,14 @@
+---
+
+- name: Schedule tmpclean cron job
+  ansible.builtin.cron:
+    name: "galaxy_tmpclean"
+    job: "{{ galaxy_tmpclean_command }} {{ galaxy_tmpclean_age | quote }} {{ galaxy_tmpclean_dirs | map('quote') | join(' ') }} {{ galaxy_tmpclean_log_statement }}"
+    cron_file: "{{ galaxy_tmpclean_cron_file | default(omit) }}"
+    user: "{{ (galaxy_tmpclean_cron_file is not none) | ternary(galaxy_user.name, omit) }}"
+    hour: "{{ galaxy_tmpclean_time.hour | default(omit) }}"
+    minute: "{{ galaxy_tmpclean_time.minute | default(omit) }}"
+    day: "{{ galaxy_tmpclean_time.day | default(omit) }}"
+    month: "{{ galaxy_tmpclean_time.month | default(omit) }}"
+    weekday: "{{ galaxy_tmpclean_time.weekday | default(omit) }}"
+    special_time: "{{ galaxy_tmpclean_time.special_time | default(omit) }}"
