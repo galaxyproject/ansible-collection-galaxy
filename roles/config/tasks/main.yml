@@ -11,6 +11,17 @@
   notify:
     - restart galaxy
 
+- name: Install additional Galaxy config files (static, public)
+  copy:
+	src: "{{ item.src }}"
+	dest: "{{ item.dest }}"
+	backup: "{{ galaxy_backup_config_files }}"
+	mode: "{{ galaxy_config_perms_public }}"
+	group: "{{ galaxy_group_name | default(omit) }}"
+  with_items: "{{ galaxy_config_files_public }}"
+  notify:
+	- restart galaxy
+
 - name: Install additional Galaxy config files (template)
   template:
     src: "{{ item.src }}"
@@ -24,11 +35,11 @@
 
 - name: Install local tools
   copy:
-    src: "{{ galaxy_local_tools_src_dir }}/{{ item }}"
-    dest: "{{ galaxy_local_tools_dir }}/{{ item }}"
+    src: "{{ galaxy_local_tools_src_dir }}/{{ item.file | default(item) }}"
+    dest: "{{ galaxy_local_tools_dir }}/{{ item.file | default(item) }}"
     mode: preserve
     group: "{{ galaxy_group_name | default(omit) }}"
-  with_items: "{{ galaxy_local_tools | default([]) }}"
+  loop: "{{ galaxy_local_tools | default([]) }}"
   when: galaxy_local_tools is defined
 
 - name: Install local_tool_conf.xml

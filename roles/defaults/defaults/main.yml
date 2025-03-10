@@ -76,6 +76,12 @@ galaxy_shared_rw_dirs:
   - "{{ galaxy_new_file_path }}"
   - "{{ galaxy_job_working_directory }}"
 
+# Additional directories to create, so you don't have to copy the defaults above
+galaxy_extra_local_ro_dirs: []
+galaxy_extra_shared_ro_dirs: []
+galaxy_extra_local_rw_dirs: []
+galaxy_extra_shared_rw_dirs: []
+
 # TODO: ftp, object store cache, ???
 
 # Control whether to output verbose task diffs (e.g. when performing a git update) when running Ansible with --diff.
@@ -150,7 +156,7 @@ _galaxy_tmpclean_command:
 
 galaxy_tmpclean_verbose_statement: "{{ galaxy_tmpclean_verbose | ternary(' -v', '') }}"
 galaxy_tmpclean_log_statement: >-
-  {{ (galaxy_tmpclean_log is not true) | ternary(
+  {{ (galaxy_tmpclean_log != true) | ternary(
       ((galaxy_tmpclean_log is none) | ternary(
           '>/dev/null',
           '>>' ~ galaxy_tmpclean_log
@@ -166,6 +172,14 @@ galaxy_tmpclean_command: "{{ _galaxy_tmpclean_command[(ansible_os_family | lower
 
 # This is now automatically determined in tasks/_inc_node_version.yml, but it can be set to force a version
 #galaxy_node_version: "XX.YY.Z"
+
+# Some platforms do not support newer prebuilt Node versions and so are pinned to older versions
+__galaxy_node_version_max:
+  "redhat7": "16.19.1"
+galaxy_node_version_max: >-
+  {{
+    (__galaxy_node_version_max[(ansible_os_family | lower) ~ ansible_distribution_major_version]) | default(galaxy_node_version)
+  }}
 
 # Where to clone Galaxy from. Backwards compatibility with galaxy_git_repo
 galaxy_repo: "{{ galaxy_git_repo | default('https://github.com/galaxyproject/galaxy.git') }}"
@@ -218,6 +232,7 @@ galaxy_backup_config_files: "{{ galaxy_backup_configfiles | default(not ansible_
 
 # Galaxy configuration files will be written with these permissions (mode argument to Ansible copy/template module)
 galaxy_config_perms: 0640
+galaxy_config_perms_public: 0644
 
 
 # The default Galaxy configuration, ensures that Galaxy can find all of the configs if galaxy_config_dir !=
@@ -281,6 +296,9 @@ galaxy_errordocs_prefix: /error
 galaxy_config_files: []
 galaxy_config_templates: []
 
+# Like above, except with world readable permissions
+galaxy_config_files_public: []
+
 # Default Gravity configuration
 galaxy_gravity_state_dir: "{{ (galaxy_local_rw_root, 'gravity') | path_join }}"
 galaxy_gravity_config_default:
@@ -321,9 +339,17 @@ galaxy_uwsgi_config_default:
 # Client build settings
 #
 
+# If this is set to true, instead of building the client from source, a prebuilt version of the client will be installed from NPM.
+# This mimics the behavior of the GALAXY_INSTALL_PREBUILT_CLIENT=1 setting when running Galaxy with run.sh.
+# When setting this to true, none of the other client settings below will be used.
+galaxy_client_use_prebuilt: false
+
 # Options include: client / client-production / client-production-maps (default). Set to null to invoke each step of the
 # build separately, but this is not guaranteed to work for all version of Galaxy - using `make` is the safer choice.
 galaxy_client_make_target: client-production-maps
+
+# Build the client even if it is not out of date
+galaxy_client_force_build: false
 
 # If galaxy_client_make_target is null, you can set this to `development` to build the client for development
 galaxy_client_node_env: production
@@ -344,6 +370,14 @@ galaxy_manage_systemd: false
 #
 # systemd options
 #
+
+# Location and name of `galaxyctl` wrapper script
+__galaxy_gravity_pm: "{{ (galaxy_config_merged.gravity | default({})).process_manager | default('supervisor') }}"
+__galaxy_gravity_instance_name: "{{ (galaxy_config_merged.gravity | default({})).instance_name | default(none) }}"
+galaxy_gravity_wrapper_path: "/usr/local/bin/galaxyctl{{ __galaxy_gravity_instance_name | ternary('-' ~ __galaxy_gravity_instance_name, '') }}"
+
+# Location of Gravity `galaxyctl` command. By default, the one in Galaxy's venv
+galaxy_gravity_command: "{{ galaxy_venv_dir }}/bin/galaxyctl"
 
 # Currently `mule` (aka uWSGI) and `gravity` (runs Galaxy 22.01+ under gunicorn) are supported
 galaxy_systemd_mode: "{{ 'mule' if __galaxy_major_version is version('22.05', '<') else 'gravity' }}"

@@ -11,6 +11,7 @@
     - current_db_version.rc != 0
     - "'migrate.exceptions.DatabaseNotControlledError' not in current_db_version.stderr"
     - "'galaxy.model.migrations.NoVersionTableError' not in current_db_version.stderr"
+    - "'galaxy.model.migrations.exceptions.NoVersionTableError' not in current_db_version.stderr"
   when: not ansible_check_mode
 
 - name: Get maximum Galaxy DB version
@@ -30,6 +31,7 @@
     - current_db_version.stdout != max_db_version.stdout
     - "'migrate.exceptions.DatabaseNotControlledError' not in current_db_version.stderr"
     - "'galaxy.model.migrations.NoVersionTableError' not in current_db_version.stderr"
+    - "'galaxy.model.migrations.exceptions.NoVersionTableError' not in current_db_version.stderr"
 
 - name: Upgrade Galaxy DB
   command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} upgrade"
@@ -40,3 +42,4 @@
     - current_db_version.stdout != max_db_version.stdout
     - "'migrate.exceptions.DatabaseNotControlledError' not in current_db_version.stderr"
     - "'galaxy.model.migrations.NoVersionTableError' not in current_db_version.stderr"
+    - "'galaxy.model.migrations.exceptions.NoVersionTableError' not in current_db_version.stderr"

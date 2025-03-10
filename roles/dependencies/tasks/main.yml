@@ -37,12 +37,3 @@
     PYTHONPATH: null
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
   when: galaxy_additional_venv_packages
-
-- name: Configure $GRAVITY_STATE_DIR in virtualenv activate
-  blockinfile:
-    path: "{{ galaxy_venv_dir }}/bin/activate"
-    marker: "# {mark} GALAXYPROJECT.GALAXY ROLE ANSIBLE MANAGED BLOCK"
-    block: |
-      # Galaxy Gravity per-instance state directory configured by galaxyproject.galaxy Ansible role
-      GRAVITY_STATE_DIR={{ galaxy_gravity_state_dir | quote }}
-      export GRAVITY_STATE_DIR

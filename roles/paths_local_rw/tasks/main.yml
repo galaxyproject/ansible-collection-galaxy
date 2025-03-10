@@ -15,5 +15,5 @@
     group: "{{ galaxy_group_name }}"
     state: directory
     mode: "{{ galaxy_local_rw_root_mode | default('0750') }}"
-  loop: "{{ galaxy_local_rw_dirs }}"
+  loop: "{{ galaxy_local_rw_dirs + galaxy_extra_local_rw_dirs }}"
   when: item.startswith(galaxy_local_rw_root) ~ '/'
