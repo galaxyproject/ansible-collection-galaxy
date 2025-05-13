@@ -1,11 +1,13 @@
 ---
 
-- name: Include Gravity handlers (for 22.05)
-  import_tasks:
-    file: gravity_22.05.yml
-  when: "galaxy_systemd_mode == 'gravity' and __galaxy_major_version is version('23.0', '<')"
+- name: galaxyctl update
+  command: "{{ galaxy_gravity_command }} -c {{ galaxy_config_file }} update"
+  environment:
+    GRAVITY_STATE_DIR: "{{ galaxy_gravity_state_dir }}"
+  listen: "galaxyctl update"
 
-- name: Include Gravity handlers (for 23.0)
-  import_tasks:
-    file: gravity_23.0.yml
-  when: "galaxy_systemd_mode == 'gravity' and __galaxy_major_version is version('23.0', '>=')"
+- name: galaxy gravity restart
+  command: "{{ galaxy_gravity_command }} -c {{ galaxy_config_file }} graceful"
+  environment:
+    GRAVITY_STATE_DIR: "{{ galaxy_gravity_state_dir }}"
+  listen: "restart galaxy"
