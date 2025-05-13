@@ -13,14 +13,14 @@
 
 - name: Install additional Galaxy config files (static, public)
   copy:
-	src: "{{ item.src }}"
-	dest: "{{ item.dest }}"
-	backup: "{{ galaxy_backup_config_files }}"
-	mode: "{{ galaxy_config_perms_public }}"
-	group: "{{ galaxy_group_name | default(omit) }}"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    backup: "{{ galaxy_backup_config_files }}"
+    mode: "{{ galaxy_config_perms_public }}"
+    group: "{{ galaxy_group_name | default(omit) }}"
   with_items: "{{ galaxy_config_files_public }}"
   notify:
-	- restart galaxy
+    - restart galaxy
 
 - name: Install additional Galaxy config files (template)
   template:
