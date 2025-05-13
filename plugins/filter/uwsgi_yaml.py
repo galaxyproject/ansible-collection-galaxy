@@ -53,8 +53,11 @@ def _iter_options(a):
 
 
 def to_uwsgi_yaml(a, indent=4, width=9999, *args, **kwargs):
-    # uWSGI's internal YAML parser is not real YAML - all values are expected to be strings, and lists are created by
-    # repeating keys
+    """Write uWSGI-formatted fake YAML
+
+    uWSGI's internal YAML parser is not real YAML - all values are expected to be strings, and lists are created by
+    repeating keys
+    """
     if not isinstance(a, dict):
         raise AnsibleError("|to_uwsgi_yaml expects a dictionary (hash)")
     r = []
