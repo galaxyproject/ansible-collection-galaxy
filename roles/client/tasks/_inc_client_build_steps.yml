@@ -64,24 +64,24 @@
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   when: __galaxy_major_version is version('26.0', '<')
 
-- name: Run vite build  # noqa no-changed-when
-  command: "corepack pnpm vite build"
+- name: Run client build  # noqa no-changed-when
+  command: "corepack pnpm run build-production"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-    NODE_ENV: production
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
     NODE_OPTIONS: --max_old_space_size=8192
+    SKIP_VIZ: "1"
   when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Stage built client
-  command: "{{ __galaxy_major_version is version('26.0', '>=') | ternary('corepack pnpm', __galaxy_major_version is version('25.1', '>=') | ternary('corepack yarn', 'yarn')) }} run stage-build"
+  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack yarn', 'yarn') }} run stage-build"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
-  when: "__galaxy_major_version is version('23.0', '>=')"
+  when: __galaxy_major_version is version('23.0', '>=') and __galaxy_major_version is version('26.0', '<')
