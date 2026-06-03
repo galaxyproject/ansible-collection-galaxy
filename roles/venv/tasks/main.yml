@@ -16,3 +16,13 @@
     extra_args: "{{ pip_extra_args | default(omit) }}"
     virtualenv: "{{ galaxy_venv_dir }}"
     virtualenv_command: "{{ galaxy_virtualenv_command | default(pip_virtualenv_command | default(omit)) }}"
+
+- name: Install uv package manager
+  pip:
+    name: uv
+    virtualenv: "{{ galaxy_venv_dir }}"
+    virtualenv_command: "{{ galaxy_virtualenv_command | default(pip_virtualenv_command | default(omit)) }}"
+  environment:
+    PYTHONPATH: null
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+  when: galaxy_install_uv

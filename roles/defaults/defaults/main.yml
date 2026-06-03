@@ -414,3 +414,5 @@ galaxy_systemd_env: []
 
 # A list of additional python packages to install into galaxy's virtual environment
 galaxy_additional_venv_packages: []
+galaxy_install_uv: yes
+galaxy_fetch_dependencies_with_uv: yes
