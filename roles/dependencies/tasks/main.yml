@@ -36,4 +36,4 @@
   environment:
     PYTHONPATH: null
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-  when: galaxy_additional_venv_packages
+  when: galaxy_additional_venv_packages | length > 0
