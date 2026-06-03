@@ -378,6 +378,8 @@ galaxy_gravity_wrapper_path: "/usr/local/bin/galaxyctl{{ __galaxy_gravity_instan
 
 # Location of Gravity `galaxyctl` command. By default, the one in Galaxy's venv
 galaxy_gravity_command: "{{ galaxy_venv_dir }}/bin/galaxyctl"
+# Gravity restart behaviour, one of: restart, graceful
+# Documentation: https://gravity.readthedocs.io/en/stable/basic_usage.html#managing-a-production-galaxy
 galaxy_gravity_restart_action: graceful
 
 # Currently `mule` (aka uWSGI) and `gravity` (runs Galaxy 22.01+ under gunicorn) are supported
