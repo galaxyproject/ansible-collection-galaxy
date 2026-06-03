@@ -73,6 +73,7 @@
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
     NODE_ENV: production
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    NODE_OPTIONS: --max_old_space_size=8192
   when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Stage built client
