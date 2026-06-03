@@ -3,6 +3,14 @@
   include_tasks: _inc_galaxy_version.yml
   when: __galaxy_major_version is undefined
 
+- name: Enable corepack shims  # noqa no-changed-when
+  command: "corepack enable --install-directory {{ galaxy_venv_dir }}/bin"
+  environment:
+    PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  when: __galaxy_major_version is version('25.1', '>=')
+
 - name: Install client build tools
   when: __galaxy_major_version is version('25.1', '<')
   block:
