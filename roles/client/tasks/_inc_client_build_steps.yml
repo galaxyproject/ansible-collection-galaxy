@@ -1,16 +1,15 @@
 ---
+- name: Ensure Galaxy version is set
+  include_tasks: _inc_galaxy_version.yml
+  when: __galaxy_major_version is undefined
 
 - name: Install packages with yarn
   yarn:
-    executable: "corepack yarn --network-timeout 300000 --check-files"
+    executable: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn --network-timeout 300000 --check-files"
     path: "{{ galaxy_server_dir }}/client"
   environment:
     PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-
-- name: Ensure Galaxy version is set
-  include_tasks: _inc_galaxy_version.yml
-  when: __galaxy_major_version is undefined
 
 - name: Ensure deconstructed build is supported
   assert:
@@ -20,7 +19,7 @@
     fail_msg: "Deconstructed client build is not supported for Galaxy version {{ __galaxy_major_version }}, please set 'galaxy_client_make_target'"
 
 - name: Run gulp  # noqa no-changed-when
-  command: corepack yarn run gulp {{ item }}
+  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run gulp {{ item }}"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   with_items: "{{ galaxy_client_build_steps[__galaxy_major_version] | default(galaxy_client_build_steps.default) }}"
@@ -30,7 +29,7 @@
     NODE_ENV: "{{ galaxy_client_node_env }}"
 
 - name: Run webpack  # noqa no-changed-when
-  command: "corepack yarn run webpack{{ (galaxy_client_node_env == 'production') | ternary('-production', '') }}"
+  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run webpack{{ (galaxy_client_node_env == 'production') | ternary('-production', '') }}"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
@@ -39,7 +38,7 @@
     NODE_OPTIONS: --max_old_space_size=8192
 
 - name: Stage built client
-  command: "corepack yarn run stage-build"
+  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run stage-build"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
