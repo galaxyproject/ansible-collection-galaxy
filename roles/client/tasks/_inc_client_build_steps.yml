@@ -10,6 +10,18 @@
   environment:
     PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  when: __galaxy_major_version is version('26.0', '<')
+
+- name: Install packages with pnpm
+  command: "corepack pnpm install"
+  args:
+    chdir: "{{ galaxy_server_dir }}/client"
+  environment:
+    PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Ensure deconstructed build is supported
   assert:
@@ -19,7 +31,7 @@
     fail_msg: "Deconstructed client build is not supported for Galaxy version {{ __galaxy_major_version }}, please set 'galaxy_client_make_target'"
 
 - name: Run gulp  # noqa no-changed-when
-  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run gulp {{ item }}"
+  command: "{{ __galaxy_major_version is version('26.0', '>=') | ternary('corepack pnpm', __galaxy_major_version is version('25.1', '>=') | ternary('corepack yarn', 'yarn')) }} run gulp {{ item }}"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   with_items: "{{ galaxy_client_build_steps[__galaxy_major_version] | default(galaxy_client_build_steps.default) }}"
@@ -27,21 +39,24 @@
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
     NODE_ENV: "{{ galaxy_client_node_env }}"
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 - name: Run webpack  # noqa no-changed-when
-  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run webpack{{ (galaxy_client_node_env == 'production') | ternary('-production', '') }}"
+  command: "{{ __galaxy_major_version is version('26.0', '>=') | ternary('corepack pnpm', __galaxy_major_version is version('25.1', '>=') | ternary('corepack yarn', 'yarn')) }} run webpack{{ (galaxy_client_node_env == 'production') | ternary('-production', '') }}"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
     NODE_OPTIONS: --max_old_space_size=8192
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 - name: Stage built client
-  command: "{{ __galaxy_major_version is version('25.1', '>=') | ternary('corepack ', '') }}yarn run stage-build"
+  command: "{{ __galaxy_major_version is version('26.0', '>=') | ternary('corepack pnpm', __galaxy_major_version is version('25.1', '>=') | ternary('corepack yarn', 'yarn')) }} run stage-build"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   when: "__galaxy_major_version is version('23.0', '>=')"
