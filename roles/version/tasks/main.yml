@@ -1,7 +1,7 @@
 ---
 # Determine Galaxy version and set the __galaxy_major_version fact
 
-- name: Check for new Galaxy version file location
+- name: Check version file location for Galaxy 26.1+
   stat:
     path: "{{ galaxy_server_dir }}/lib/galaxy/version/__init__.py"
   register: __galaxy_version_init_stat
