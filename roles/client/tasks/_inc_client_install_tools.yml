@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure Galaxy version is set
   include_tasks: _inc_galaxy_version.yml
   when: __galaxy_major_version is undefined
