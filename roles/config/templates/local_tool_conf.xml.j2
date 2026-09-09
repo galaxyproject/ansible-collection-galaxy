@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<toolbox monitor="true" tool_path="{{ galaxy_local_tools_dir }}">
+<toolbox monitor="true" tool_path="{{ galaxy_local_tools_dir }}" is_shed_conf="false">
 {% for tool in galaxy_local_tools %}
 {% if tool is not mapping %}
 {% set tool = {'section_name': 'Local Tools', 'file': tool} %}
