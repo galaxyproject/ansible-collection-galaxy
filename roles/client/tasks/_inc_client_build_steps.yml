@@ -1,4 +1,7 @@
 ---
+- name: Ensure Galaxy version is set
+  include_tasks: _inc_galaxy_version.yml
+  when: __galaxy_major_version is undefined
 
 - name: Install packages with yarn
   yarn:
@@ -7,10 +10,16 @@
   environment:
     PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+  when: __galaxy_major_version is version('26.0', '<')
 
-- name: Ensure Galaxy version is set
-  include_tasks: _inc_galaxy_version.yml
-  when: __galaxy_major_version is undefined
+- name: Install packages with pnpm
+  command: "pnpm install"
+  args:
+    chdir: "{{ galaxy_server_dir }}/client"
+  environment:
+    PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+  when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Ensure deconstructed build is supported
   assert:
@@ -20,7 +29,7 @@
     fail_msg: "Deconstructed client build is not supported for Galaxy version {{ __galaxy_major_version }}, please set 'galaxy_client_make_target'"
 
 - name: Run gulp  # noqa no-changed-when
-  command: yarn run gulp {{ item }}
+  command: "yarn run gulp {{ item }}"
   args:
     chdir: "{{ galaxy_server_dir }}/client"
   with_items: "{{ galaxy_client_build_steps[__galaxy_major_version] | default(galaxy_client_build_steps.default) }}"
@@ -28,6 +37,17 @@
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
     NODE_ENV: "{{ galaxy_client_node_env }}"
+  when: __galaxy_major_version is version('26.0', '<')
+
+- name: Build plugins  # noqa no-changed-when
+  command: "pnpm run plugins"
+  args:
+    chdir: "{{ galaxy_server_dir }}/client"
+  environment:
+    PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    NODE_ENV: "{{ galaxy_client_node_env }}"
+  when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Run webpack  # noqa no-changed-when
   command: "yarn run webpack{{ (galaxy_client_node_env == 'production') | ternary('-production', '') }}"
@@ -36,7 +56,19 @@
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-    GXY_BUILD_SOURCEMAPS: 1
+    NODE_OPTIONS: --max_old_space_size=8192
+  when: __galaxy_major_version is version('26.0', '<')
+
+- name: Run client build  # noqa no-changed-when
+  command: "pnpm run build-production"
+  args:
+    chdir: "{{ galaxy_server_dir }}/client"
+  environment:
+    PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+    VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+    NODE_OPTIONS: --max_old_space_size=8192
+    SKIP_VIZ: "1"
+  when: __galaxy_major_version is version('26.0', '>=')
 
 - name: Stage built client
   command: "yarn run stage-build"
@@ -45,4 +77,4 @@
   environment:
     PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
     VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-  when: "__galaxy_major_version is version('23.0', '>=')"
+  when: __galaxy_major_version is version('23.0', '>=') and __galaxy_major_version is version('26.0', '<')

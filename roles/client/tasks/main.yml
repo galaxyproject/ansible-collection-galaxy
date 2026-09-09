@@ -78,14 +78,34 @@
         VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
       register: __yarn_install
       changed_when: "'already up-to-date' not in __yarn_install.out | lower"
+      when: __galaxy_major_version is version('26.0', '<')
 
-    - name: Stage prebuilt client # noqa no-changed-when
+    - name: Install prebuilt client with pnpm
+      command: "pnpm install"
+      args:
+        chdir: "{{ galaxy_server_dir }}"
+      environment:
+        PATH: "{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+        VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+      register: __pnpm_install
+      when: __galaxy_major_version is version('26.0', '>=')
+
+    - name: Stage prebuilt client (yarn) # noqa no-changed-when
       command: "yarn run stage"
       args:
         chdir: "{{ galaxy_server_dir }}"
       environment:
         PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
         VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
-      when: __yarn_install.changed
+      when: __galaxy_major_version is version('26.0', '<') and __yarn_install.changed
+
+    - name: Stage prebuilt client (pnpm) # noqa no-changed-when
+      command: "pnpm run stage"
+      args:
+        chdir: "{{ galaxy_server_dir }}"
+      environment:
+        PATH: "{{ galaxy_server_dir }}/client/node_modules/.bin:{{ galaxy_venv_dir }}/bin:{{ ansible_env.PATH }}"
+        VIRTUAL_ENV: "{{ galaxy_venv_dir }}"
+      when: __galaxy_major_version is version('26.0', '>=') and __pnpm_install.changed
 
   when: galaxy_client_use_prebuilt
