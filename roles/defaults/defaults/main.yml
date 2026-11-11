@@ -3,7 +3,7 @@
 
 # User that Galaxy runs as
 # TODO: describe dict keys
-galaxy_user: "{{ ansible_user_id }}"
+galaxy_user: "{{ ansible_facts['user_id'] }}"
 
 # User that owns Galaxy code, configs, and virutalenv, and that runs `pip install` for dependencies
 galaxy_privsep_user: root
@@ -164,7 +164,7 @@ galaxy_tmpclean_log_statement: >-
       ''
   ) }}
 
-galaxy_tmpclean_command: "{{ _galaxy_tmpclean_command[(ansible_os_family | lower)] }}{{ galaxy_tmpclean_verbose_statement }}"
+galaxy_tmpclean_command: "{{ _galaxy_tmpclean_command[(ansible_facts['os_family'] | lower)] }}{{ galaxy_tmpclean_verbose_statement }}"
 
 #
 # Version control
@@ -178,7 +178,7 @@ __galaxy_node_version_max:
   "redhat7": "16.19.1"
 galaxy_node_version_max: >-
   {{
-    (__galaxy_node_version_max[(ansible_os_family | lower) ~ ansible_distribution_major_version]) | default(galaxy_node_version)
+    (__galaxy_node_version_max[(ansible_facts['os_family'] | lower) ~ ansible_facts['distribution_major_version']]) | default(galaxy_node_version)
   }}
 
 # Where to clone Galaxy from. Backwards compatibility with galaxy_git_repo
