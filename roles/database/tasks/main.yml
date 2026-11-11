@@ -2,11 +2,11 @@
 # Manage Galaxy Database
 
 - name: Get current Galaxy DB version
-  command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} db_version"
+  ansible.builtin.command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} db_version"
   args:
     chdir: "{{ galaxy_server_dir }}"
   register: current_db_version
-  changed_when: no
+  changed_when: false
   failed_when:
     - current_db_version.rc != 0
     - "'migrate.exceptions.DatabaseNotControlledError' not in current_db_version.stderr"
@@ -15,17 +15,17 @@
   when: not ansible_check_mode
 
 - name: Get maximum Galaxy DB version
-  command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} version"
+  ansible.builtin.command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} version"
   args:
     chdir: "{{ galaxy_server_dir }}"
   register: max_db_version
-  changed_when: no
+  changed_when: false
   when: not ansible_check_mode
 
 - name: Report current and max Galaxy database
-  debug:
+  ansible.builtin.debug:
     msg: "Current database version is {{ current_db_version.stdout }} and the maximum version is {{ max_db_version.stdout }}."
-  changed_when: True
+  changed_when: true
   when:
     - not ansible_check_mode
     - current_db_version.stdout != max_db_version.stdout
@@ -34,9 +34,10 @@
     - "'galaxy.model.migrations.exceptions.NoVersionTableError' not in current_db_version.stderr"
 
 - name: Upgrade Galaxy DB
-  command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} upgrade"
+  ansible.builtin.command: "{{ galaxy_venv_dir }}/bin/python {{ galaxy_server_dir }}/scripts/manage_db.py -c {{ galaxy_config_file }} upgrade"
   args:
     chdir: "{{ galaxy_server_dir }}"
+  changed_when: true
   when:
     - not ansible_check_mode
     - current_db_version.stdout != max_db_version.stdout
