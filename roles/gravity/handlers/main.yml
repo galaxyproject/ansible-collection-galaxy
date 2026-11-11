@@ -22,6 +22,8 @@
 # Gravity handlers for 23.0+
 - name: galaxyctl update (23.0+)
   command: "{{ galaxy_gravity_command }} -c {{ galaxy_config_file }} update"
+  environment:
+    PYTHONDONTWRITEBYTECODE: "1"
   listen: "galaxyctl update"
   when: "__galaxy_major_version is version('23.0', '>=')"
   become: yes
@@ -29,6 +31,8 @@
 
 - name: galaxy gravity restart (23.0+)
   command: "{{ galaxy_gravity_command }} -c {{ galaxy_config_file }} {{ galaxy_gravity_restart_action }}{{ ' --start-if-stopped' if (galaxy_gravity_restart_action == 'graceful' and galaxy_gravity_graceful_start_if_stopped) else '' }}"
+  environment:
+    PYTHONDONTWRITEBYTECODE: "1"
   listen: "restart galaxy"
   when: "__galaxy_major_version is version('23.0', '>=')"
   become: yes
